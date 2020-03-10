@@ -39,7 +39,7 @@ CREATE TABLE reg_keys (
 ```sql
 CREATE TABLE users (
 	id INT(11) NOT NULL AUTO_INCREMENT,
-    user_name VARCHAR(50),
+    username VARCHAR(50),
     email VARCHAR(50),
     affiliation VARCHAR(50),
     password VARCHAR(255),
@@ -63,7 +63,7 @@ CREATE TABLE password_resets (
 ```sql
 CREATE TABLE projects (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    user_name VARCHAR(50),
+    username VARCHAR(50),
     project_id VARCHAR(36),
     project_name VARCHAR(100),
     target VARCHAR(30),
