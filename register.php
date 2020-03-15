@@ -35,8 +35,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             
             // Set parameters
             $param_username = trim($_POST["username"]);
-            
+
             // Attempt to execute the prepared statement
+            try {
             if($stmt->execute()){
                 if($stmt->rowCount() == 1){
                     $username_err = "This username is already taken.";
@@ -45,6 +46,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 }
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
+            }
+            } catch(Exception $e) {
+               echo 'Message: ' .$e->getMessage();
             }
         }
          

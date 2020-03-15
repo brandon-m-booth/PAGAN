@@ -108,7 +108,7 @@ function onYouTubeIframeAPIReady() {
             'fs': 0,
             'modestbranding': 1,
             'host': 'https://www.youtube.com',
-            'origin': 'http://pagan.davidmelhart.com',
+//            'origin': 'http://pagan.davidmelhart.com',
             'playsinline': 1,
             'rel': 0
         },
@@ -121,15 +121,16 @@ function onYouTubeIframeAPIReady() {
 
 // The video autoloads to start buffering. On Ready the app pauses the video and gives control to the user.
 function onPlayerReady(event) {
-    player.mute();
-    player.addEventListener("onStateChange", function(){
-        if(player.getPlayerState() == 1 && firstStart) {
-            player.pauseVideo();
-            player.removeEventListener();
-            player.unMute();
-            showStart();
-        }
-    });
+    player.pauseVideo();
+    showStart();
+    //player.addEventListener("onStateChange", function(){
+    //    if(player.getPlayerState() == 1 && firstStart) {
+    //        player.pauseVideo();
+    //        player.removeEventListener();
+    //        player.unMute();
+    //        showStart();
+    //    }
+    //});
 }
 
 function onPlayerStateChange(event) {
