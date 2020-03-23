@@ -198,6 +198,10 @@
                         echo '<p class="instructions">Please use the <span class="key up"></span>(increase) and <span class="key down"></span>(decrease) keys<br>to indicate <strong>positive or negative changes of '.$target;
                         if(!empty($message)){echo'*';}
                         echo '</strong><br>while watching the video.</p>';
+                    } else if ($type === 'bounded') {
+                        echo '<p class="instructions">Please use the <span class="key up"></span>(increase) and <span class="key down"></span>(decrease) keys<br>to indicate the <strong>level of '.$target;
+                        if(!empty($message)){echo'*';}
+                        echo '</strong> while watching the video.</p>';
                     } else {
                         echo '<p class="instructions">Please use the scroll-wheel <span class="key scroll-full"></span>to indicate<br>the <strong>level of '.$target;
                         if(!empty($message)){echo'*';}
@@ -215,6 +219,8 @@
                     echo '<img src="static/img/simple_example.png"/>';
                 } elseif ($type === 'gtrace') {
                     echo '<img src="static/img/gtrace_example.png"/>';
+                } elseif ($type === 'bounded') {
+                    echo '<img src="static/img/bounded_example.png"/>';
                 } else {
                     echo '<img src="static/img/ranktrace_example.png"/>';
                 }
@@ -265,7 +271,7 @@
                 echo '<div class="keys gtrace"><span class="key right"></span><span>increase</span></div>';
             } else {
                 echo '<div class="keys">';
-                    if ($type === 'binary') {
+                    if ($type === 'binary' or $type === 'bounded') {
                         echo '<span class="key up"></span>';
                         echo '<span>increase (+)</span>';
                     } else {
@@ -273,7 +279,7 @@
                         echo '<span>increase</span>';
                     }
                     echo '<hr/>';
-                    if ($type === 'binary') {
+                    if ($type === 'binary' or $type === 'bounded') {
                         echo '<span>decrease (-)</span>';
                         echo '<span class="key down"></span>';
                     } else {

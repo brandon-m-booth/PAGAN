@@ -87,7 +87,13 @@ $(document).on("change paste keyup", function() {
 	if (selected == "youtube"){
 		$('#entry-n')[0].innerHTML = $('.youtube-source').length-1;
 	} else if(selected == 'upload'){
-		$('#entry-n')[0].innerHTML = $('#file-source')[0]['files'].length;
+      try {
+         $('#entry-n')[0].innerHTML = $('#file-source')[0]['files'].length;
+      } catch(err) {
+         if (err.constructor != TypeError) {
+            console.error(err.message);
+         }
+      }
 	}
 });
 

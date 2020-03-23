@@ -10,7 +10,7 @@ var
     annotatorMax = 0,                   //annotator max vaule for normalisation
     annotatorMin = 0,                   //annotator min vaule for normalisation
     currentTime = 0,                    //current time of the video since the beginning
-    trace = [],                         //container for recoreded annotator values
+    trace = [],                         //container for recorded annotator values
     normTrace = [],                     //container for normalised positions for rendering the trace
     previousTime = -1,                  //helper variable for timed checks
     previousValue = 0,                  //helper variable for change in value checks
@@ -122,6 +122,8 @@ function onYouTubeIframeAPIReady() {
 // The video autoloads to start buffering. On Ready the app pauses the video and gives control to the user.
 function onPlayerReady(event) {
     player.pauseVideo();
+    player.unMute();
+    paused = true;
     showStart();
     //player.addEventListener("onStateChange", function(){
     //    if(player.getPlayerState() == 1 && firstStart) {
@@ -232,6 +234,9 @@ function startControls() {
     sessionStart = Math.floor((new Date).getTime()/1000);
 
     var keySpeed = 10;
+    if(annotation_type == "bounded"){
+        keySpeed = 10;
+    }
     if(annotation_type == "ranktrace"){
         keySpeed = 10;
     }
@@ -311,6 +316,119 @@ $(window).focus(function(e) {
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
+
+// Animation loop for the canvas element when running bounded
+// annotation style. Sends packages to the server with annotator
+// values.
+function animateBounded(){
+    //if (paused) {
+    //    //Draw pause symbol and exit loop if the video is paused
+    //    context.fillStyle = "#b1b1b3";
+    //    context.fillRect(canvas.width - 20, 10, 8, 20);
+    //    context.fillRect(canvas.width - 33, 10, 8, 20);
+    //    return;
+    //}
+    //else {
+    //  context.clearRect(canvas.width - 33, 10, 33, 20);
+    //}
+    // Output for the video length bar
+    $('#video-length #bar').css('width', (getCurrentTime()/getDuration())*100 + '%');    
+    // If video passed 25% of viewing time, register it as seen
+    if(getCurrentTime()/getDuration() > 0.25 && seen_trigger == false) {
+        seen_trigger = true;
+        var seen;
+        if (video_type == 'upload' || video_type == 'user_upload' || video_type == 'game') {
+            seen = video;
+        } else {
+            seen = "https://www.youtube.com/watch?v="+video;
+        }
+        $.post("util/reg_seen.php", {project_id: project_id, entry_id: entry_id});
+        console.log("Video registered as 'seen'.");
+    }
+    // Automatically send new annotations values every ms while the animation loop is running
+    currentTime = Math.round(getCurrentTime() * 1000); // Current time of the video in ms
+    recordAnnotation(currentTime, 'bounded');
+
+    // Request new frame, clear canvas, and redraw background
+    requestAnimationFrame(animateBounded);
+    //context.clearRect(0, 0, canvas.width, canvas.height);
+    //context.fillStyle = '#4d4d4d';
+    //context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Clamp annotator value
+    annotatorValue = clamp(annotatorValue, -100, 100);
+
+    // Calculate the normalised values for the annotaton trace for the current tick
+    trace.push(annotatorValue);
+    normTrace.push({
+        x: normPosXDuration(getDuration(), getCurrentTime()),
+        y: normPosY(annotatorValue, 100, -100)
+    });
+    //for (var j = 0; j < trace.length; j ++) {
+    //    normTrace.push({
+    //        x: normPosXDuration(getDuration(), currentTime),
+    //        y: normPosY(trace[j], 100, -100)
+    //    });
+    //}
+
+    // if (keyPress) {
+    //     annotationMod = annotationMod + (Math.pow(2, mod)-1);
+    //     mod += 0.01;
+    // } else {
+    //     annotationMod = 1;
+    //     mod = 0;
+    // }
+
+    //// Style setup
+    //context.lineCap="round";
+    //context.strokeStyle = '#86a3c6';
+    //context.lineWidth = 4;
+    //context.beginPath();
+    //// Move to start position
+    //context.moveTo(normTrace[0].x, normTrace[0].y);
+    //// For every point, calculate the control point and draw quadratic curve
+    //for (var i = 1; i < normTrace.length - 2; i ++) {
+    //    var xc = (normTrace[i].x + normTrace[i + 1].x) / 2;
+    //    var yc = (normTrace[i].y + normTrace[i + 1].y) / 2;
+    //    context.quadraticCurveTo(normTrace[i].x, normTrace[i].y, xc, yc);
+    //}
+    //// Curve to the last two segments
+    //if (i > 2) {
+    //    context.quadraticCurveTo(normTrace[i].x, normTrace[i].y, normTrace[i+1].x, normTrace[i+1].y);
+    //    context.stroke();
+    //    // Annotation cursor
+    //    context.beginPath();
+    //    context.arc(normTrace[i+1].x, normTrace[i+1].y, 10, 0, 2 * Math.PI, false);
+    //    context.stroke();
+    //}
+    //normTrace = [];
+    radius = 4;
+    context.lineCap="round";
+    context.lineWidth = radius;
+    lastIdx = normTrace.length - 1;
+
+    num_redraw_points = 50;
+    redraw_min_idx = Math.max(0, lastIdx-num_redraw_points);
+    // Clear a vertical sliver at the leading edge of the line
+    //context.fillStyle = '#4d4d4d';
+    //context.clearRect(normTrace[redraw_min_idx].x, 0, normTrace[lastIdx].x-normTrace[redraw_min_idx].x, canvas.height);
+
+    // Redraw up to the last num_redraw_points points
+    context.strokeStyle = '#86a3c6';
+    context.beginPath();
+    context.moveTo(normTrace[redraw_min_idx].x, normTrace[redraw_min_idx].y);
+    for (var i = redraw_min_idx; i < lastIdx; i++) {
+        context.quadraticCurveTo(normTrace[i].x, normTrace[i].y, normTrace[i+1].x, normTrace[i+1].y);
+    }
+    context.stroke();
+
+    // Draw the most recent point in a different style
+    context.strokeStyle = '#b5122a';
+    context.beginPath();
+    context.moveTo(normTrace[lastIdx].x, normTrace[lastIdx].y);
+    context.quadraticCurveTo(normTrace[lastIdx].x, normTrace[lastIdx].y, normTrace[lastIdx].x, normTrace[lastIdx].y);
+    context.stroke();
+}
 
 // Animation loop for the canvas element when running RankTrace
 // Grapical implementation of the RankTraceTool
@@ -734,6 +852,10 @@ function normPosX(points, i) {
     return (((canvas.width - 50) / points.length) * i) + 20;
 }
 
+function normPosXDuration(total_duration, time_index) {
+    return (((canvas.width - 50) / total_duration) * time_index) + 20;
+}
+
 // Keyboard input with customisable repeat (set to 0 for no key repeat)
 function KeyboardController(keys, repeat) {
     // Lookup of key codes to timer ID, or null for no repeat
@@ -796,6 +918,19 @@ function startPause() {
                 }
                 // Log start of the annotation
                 sendAnnotation((new Date).getTime(), currentTime, 0);
+
+                if (annotation_type == "bounded") {
+                    bound_line_width = 2;
+                    upper_line_y = normPosY(100, 100, -100);
+                    lower_line_y = normPosY(-100, 100, -100);
+                    context.strokeStyle = '#bbbbbb';
+                    context.beginPath();
+                    context.moveTo(0, upper_line_y);
+                    context.lineTo(canvas.width, upper_line_y);
+                    context.moveTo(0, lower_line_y);
+                    context.lineTo(canvas.width, lower_line_y);
+                    context.stroke();
+                }
             }
             if (video_type == 'youtube' || video_type == 'user_youtube') {
                 player.playVideo();
@@ -811,6 +946,8 @@ function startPause() {
                 animateGtrace();
             } else if (annotation_type == "ranktrace2") {
                 animateRankTraceNew();
+            } else if (annotation_type == 'bounded') {
+                animateBounded();
             } else {
                 animateRankTrace();
             }

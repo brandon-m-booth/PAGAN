@@ -48,7 +48,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 $source_url_err = "Sorry, only MP4, MPEG & AVI files are allowed.";
             }
             // Check file size
-            if ($_FILES["file"]["size"][$x] > 100*MB) {
+            if ($_FILES["file"]["size"][$x] > 600*MB) {
                 $source_url_err = "Sorry, the file is too large.";
             }
         }
@@ -553,6 +553,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <input type="radio" name="type" value="ranktrace" checked><span>RankTrace</span>
                     <input type="radio" name="type" value="gtrace"><span>GTrace</span>
                     <input type="radio" name="type" value="binary"><span>Binary</span>
+                    <input type="radio" name="type" value="bounded"><span>Bounded</span>
                 </div>
             </div>
             <div class="form-group">
@@ -566,7 +567,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 </div>
                 <div class="form-group <?php echo (!empty($source_url_err)) ? 'has-error' : ''; ?>" id="project-entries">
                     <span class="help-block"><?php echo $source_url_err; ?></span>
-                    <input type="file" multiple name="file[]" class="form-control" id="file-source hidden" accept="video/mp4" value="">
+                    <input type="file" multiple name="file[]" class="form-control hidden" id="file-source" accept="video/mp4" value="">
                     <input type="text" name="source_url[]" class="form-control youtube-source" value="">
                 </div>
             </div>
