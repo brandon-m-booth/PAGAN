@@ -155,6 +155,7 @@ function onPlayerStateChange(event) {
         case 3: //buffering
             player.pauseVideo();
             paused = true;
+            $('#pause-helper').addClass('hidden')
             $('#pause').removeClass('hidden');
             $('#video-shade').removeClass('hidden');
             break;
@@ -240,7 +241,7 @@ function startControls() {
 
     var keySpeed = 10;
     if(annotation_type == "bounded"){
-        keySpeed = 10;
+        keySpeed = 15;
     }
     if(annotation_type == "ranktrace"){
         keySpeed = 10;
@@ -300,6 +301,7 @@ $(".help").click(function(){
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -309,6 +311,7 @@ $(window).blur(function(e) {
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -318,6 +321,7 @@ $(window).focus(function(e) {
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -943,6 +947,7 @@ function startPause() {
             video_container.play(); 
 
             paused = false;
+            $('#pause-helper').removeClass('hidden')
             $('#pause').addClass('hidden');
             $('#video-shade').addClass('hidden');
             if (annotation_type == "binary") {
@@ -963,6 +968,7 @@ function startPause() {
                 video_container.pause();    
             }
             paused = true;
+            $('#pause-helper').addClass('hidden')
             $('#pause').removeClass('hidden');
             $('#video-shade').removeClass('hidden');
         }

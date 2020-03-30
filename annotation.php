@@ -156,7 +156,7 @@
             <h3>Hello!</h3>
             <p>Thank you for your help in this experiment!</p>
             <p>By participating in this study you understand and consent to your labelling data to be stored and used in further experiments and/or made public as part of a larger dataset.</p>
-            <p>Don't worry, all the data is collected anonymously and cannot be traced back to you.</p>
+            <p>Don't worry, all the data are collected anonymously and cannot be traced back to you.</p>
             <br>
             <p>We use scripts and persistent cookies on this platform. Our applications run on JavaScript, while cookies help us collecting and organising data.</p>
             <p>Please keep scripts and cookies enabled for science!</p>
@@ -171,7 +171,7 @@
 ?>
 
 
-<div class="inner">
+<div class="inner" style="flex-direction: column;">
     <div class="annotation-container">
         <?php 
             if ($test_mode > 0) {
@@ -201,7 +201,7 @@
                     } else if ($type === 'bounded') {
                         echo '<p class="instructions">Please use the <span class="key up"></span>(increase) and <span class="key down"></span>(decrease) keys<br>to indicate the <strong>level of '.$target;
                         if(!empty($message)){echo'*';}
-                        echo '</strong> while watching the video.</p>';
+                        echo '</strong> while watching the video. You must use the keyboard.</p>';
                     } else {
                         echo '<p class="instructions">Please use the scroll-wheel <span class="key scroll-full"></span>to indicate<br>the <strong>level of '.$target;
                         if(!empty($message)){echo'*';}
@@ -291,6 +291,9 @@
             }
             ?>
         </div>
+    </div>
+    <div id='pause-helper' class="hidden">
+        <p>Press <span class="key space"></span> to pause the video.</p>
     </div>
 </div>
 

@@ -21,6 +21,10 @@ function getGUID(){
     return $uuid;
 }
 
+function endsWith($str, $search) {
+    return substr_compare($str, $search, -strlen($search)) === 0;
+}
+
 # Header HTML block
 # parameters:
 #	title - string; fills in title tag, defaults to "Platform for Affective Game ANnotation"
@@ -80,7 +84,7 @@ echo
 				<div class="icon help">?</div>
 			</div>-->';
 		}
-		if (($current_page != "/annotation" || ($current_page == "/annotation" && $test_mode)) && $current_page != "/end" && $current_page != "/upload") {
+		if ((!endsWith($current_page, "/annotation") || endsWith($current_page, "/annotation" && $test_mode)) && !endsWith($current_page, "/end") && !endsWith($current_page, "/upload")) {
 			echo '
 			<header>
 				<div id="title">
@@ -90,11 +94,11 @@ echo
 				</div>
 				<nav>
 					<ul>
-						<a '; if($current_page == "/howto"){echo 'class="current"';} echo ' href="./howto.php"><li>How To & Test</li></a>
-						<a '; if($current_page == "/projects" || $current_page == "/archived"){echo 'class="current"';} echo' href="./projects.php"><li>My Projects</li></a>
-						<a '; if($current_page == "/datasets"){echo 'class="current"';} echo' href="./datasets.php"><li>Datasets</li></a>
-						<a '; if($current_page == "/terms"){echo 'class="current"';} echo' href="./terms.php"><li>Terms</li></a>
-						<a '; if($current_page == "/contact"){echo 'class="current"';} echo' href="./contact.php"><li>Contact</li></a>
+						<a '; if(endsWith($current_page, "/howto")){echo 'class="current"';} echo ' href="./howto.php"><li>How To & Test</li></a>
+						<a '; if(endsWith($current_page, "/projects") || endsWith($current_page, "/archived")){echo 'class="current"';} echo' href="./projects.php"><li>My Projects</li></a>
+						<a '; if(endsWith($current_page, "/datasets")){echo 'class="current"';} echo' href="./datasets.php"><li>Datasets</li></a>
+						<a '; if(endsWith($current_page, "/terms")){echo 'class="current"';} echo' href="./terms.php"><li>Terms</li></a>
+						<a '; if(endsWith($current_page, "/contact")){echo 'class="current"';} echo' href="./contact.php"><li>Contact</li></a>
 					</ul>
 				</nav>
 			</header>
