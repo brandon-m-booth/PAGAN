@@ -65,6 +65,11 @@ function loadVideo(_annotation_type_, _video_type_, _video_src_, _videoname_, _t
     // Set label for the annotation
     console.log("Annotation target is set to " + target + ".");
 
+    
+    if (annotation_type == 'bounded') {
+        annotatorValue = -100; // HACK - start at the bottom of the annotation space
+    }
+
     // Load video if the source is file upload
     if (video_type == 'upload' || video_type == 'user_upload' || video_type == 'game') {
         console.log("Loading...")
@@ -334,7 +339,7 @@ function animateBounded(){
     // Output for the video length bar
     $('#video-length #bar').css('width', (getCurrentTime()/getDuration())*100 + '%');    
     // If video passed 25% of viewing time, register it as seen
-    if(getCurrentTime()/getDuration() > 0.25 && seen_trigger == false) {
+    if(getCurrentTime()/getDuration() > 0.95 && seen_trigger == false) {
         seen_trigger = true;
         var seen;
         if (video_type == 'upload' || video_type == 'user_upload' || video_type == 'game') {
