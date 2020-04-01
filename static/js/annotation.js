@@ -221,7 +221,17 @@ function initEndSession(){
     // If a custom user is set, it constructs a path name for the logfile and pass it to the endplate url
 function endSession() {
     if (!ended){
-        sendAnnotation((new Date).getTime(), currentTime, 0);
+        if(annotation_type == 'binary'){
+            if (annotatorValue > previousValue) {
+                sendAnnotation((new Date).getTime(), currentTime, 1);
+            } else {
+                sendAnnotation((new Date).getTime(), currentTime, -1);
+            }
+        } else if(annotation_type =='bounded') {
+            sendAnnotation((new Date).getTime(), currentTime, clamp(annotatorValue, -100, 100));
+        } else {
+            sendAnnotation((new Date).getTime(), currentTime, annotatorValue);
+        }
         ended = true;
         if(video_type != 'game') {
             // Refresh the window -> loads next video based on where the player at in the project process
@@ -794,24 +804,38 @@ function animateBinary(){
 // 'binary': 1 positive -1 negative annotation
 // 'bounded': between -100 and 100, where 0 is the middle
 // 'unbounded' (default): between -inf and +inf, where 0 is the initial value
+var sentLastRecordedAnnotation = true;
 function recordAnnotation(currentTime, mode){
-    if ((currentTime > previousTime) && previousValue != annotatorValue) {
+    recordAnnotatorValue = annotatorValue;
+    if (mode == 'bounded') {
+        recordAnnotatorValue = clamp(annotatorValue, -100, 100);
+    }
+
+    if ((currentTime > previousTime) && previousValue != recordAnnotatorValue) {
         if(mode == 'binary'){
-            if (annotatorValue > previousValue) {
+            if (recordAnnotatorValue > previousValue) {
                 trace.push({x: currentTime, y: 40});
                 sendAnnotation((new Date).getTime(), currentTime, 1);
             } else {
                 trace.push({x: currentTime, y: 110});
                 sendAnnotation((new Date).getTime(), currentTime, -1);
             }
-        } else if(mode =='bounded') {
-            sendAnnotation((new Date).getTime(), currentTime, clamp(annotatorValue, -100, 100));
+        } else if(mode == 'bounded') {
+            if (!sentLastRecordedAnnotation) {
+                console.log("Previous: ", previousValue);
+                sendAnnotation((new Date).getTime(), previousTime, previousValue);
+            }
+            console.log("Current: ", recordAnnotatorValue);
+            sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
         } else {
-            sendAnnotation((new Date).getTime(), currentTime, annotatorValue);
+            sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
         }
-        previousTime = currentTime;
-        previousValue = annotatorValue;
+        sentLastRecordedAnnotation = true;
+    } else if (currentTime > previousTime) {
+        sentLastRecordedAnnotation = false;
     }
+    previousTime = currentTime;
+    previousValue = recordAnnotatorValue;
 }
 
 // Posts a package to the server
@@ -925,8 +949,6 @@ function startPause() {
                         video_container.muted = true;
                     }
                 }
-                // Log start of the annotation
-                sendAnnotation((new Date).getTime(), currentTime, 0);
 
                 if (annotation_type == "bounded") {
                     bound_line_width = 2;
@@ -939,6 +961,12 @@ function startPause() {
                     context.moveTo(0, lower_line_y);
                     context.lineTo(canvas.width, lower_line_y);
                     context.stroke();
+
+                    // Log start of the annotation
+                    sendAnnotation((new Date).getTime(), currentTime, -100);
+                } else {
+                    // Log start of the annotation
+                    sendAnnotation((new Date).getTime(), currentTime, 0);
                 }
             }
             if (video_type == 'youtube' || video_type == 'user_youtube') {
