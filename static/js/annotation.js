@@ -3,6 +3,7 @@ var
     video_container = $('video')[0],    //video container
     canvas = $('canvas')[0],            //canvas for the annotator app
     context = canvas.getContext('2d'),  //context of the drawing board
+    pressedPause = false,               //boolean tracking when the pause/unpause input is received
     paused = true,                      //boolean tracking if the video is on pause
     annotatorPosY = canvas.height/2,    //default annotator cursor position Y
     annotatorPosX = 20,                 //default annotator cursor position X
@@ -64,6 +65,11 @@ function loadVideo(_annotation_type_, _video_type_, _video_src_, _videoname_, _t
 
     // Set label for the annotation
     console.log("Annotation target is set to " + target + ".");
+
+    
+    if (annotation_type == 'bounded') {
+        annotatorValue = -100; // HACK - start at the bottom of the annotation space
+    }
 
     // Load video if the source is file upload
     if (video_type == 'upload' || video_type == 'user_upload' || video_type == 'game') {
@@ -150,6 +156,7 @@ function onPlayerStateChange(event) {
         case 3: //buffering
             player.pauseVideo();
             paused = true;
+            $('#pause-helper').addClass('hidden')
             $('#pause').removeClass('hidden');
             $('#video-shade').removeClass('hidden');
             break;
@@ -215,7 +222,17 @@ function initEndSession(){
     // If a custom user is set, it constructs a path name for the logfile and pass it to the endplate url
 function endSession() {
     if (!ended){
-        sendAnnotation((new Date).getTime(), currentTime, 0);
+        if(annotation_type == 'binary'){
+            if (annotatorValue > previousValue) {
+                sendAnnotation((new Date).getTime(), currentTime, 1);
+            } else {
+                sendAnnotation((new Date).getTime(), currentTime, -1);
+            }
+        } else if(annotation_type =='bounded') {
+            sendAnnotation((new Date).getTime(), currentTime, clamp(annotatorValue, -100, 100));
+        } else {
+            sendAnnotation((new Date).getTime(), currentTime, annotatorValue);
+        }
         ended = true;
         if(video_type != 'game') {
             // Refresh the window -> loads next video based on where the player at in the project process
@@ -231,11 +248,14 @@ function endSession() {
 
 // Listens for keyboard controls
 function startControls() {
+    if (!firstStart) {
+        return;
+    }
     sessionStart = Math.floor((new Date).getTime()/1000);
 
     var keySpeed = 10;
     if(annotation_type == "bounded"){
-        keySpeed = 10;
+        keySpeed = 15;
     }
     if(annotation_type == "ranktrace"){
         keySpeed = 10;
@@ -253,7 +273,7 @@ function startControls() {
     // When Space is pressed start/pause the video
     // 1 sec delay on start/pause to stop flickering when space held down
     KeyboardController({
-        32: function() { startPause(); },
+        32: function() { if(!pressedPause) {pressedPause = true; startPause();} },
     }, 1000);
 
     // Keyboard controller for a smoother register of keydown
@@ -261,19 +281,19 @@ function startControls() {
         KeyboardController({
             // Key Up and W, Right and D
             39: function() { addValue(); },
-            68: function() { addValue(); },
+            //68: function() { addValue(); },
             // Key Down and S, Left and A
             37: function() { subtractValue(); },
-            65: function() { subtractValue(); },
+            //65: function() { subtractValue(); },
         }, keySpeed);
     } else {
         KeyboardController({
             // Key Up and W, Right and D
             38: function() { addValue(); },
-            87: function() { addValue(); },
+            //87: function() { addValue(); },
             // Key Down and S, Left and A
             40: function() { subtractValue(); },
-            83: function() { subtractValue(); },
+            //83: function() { subtractValue(); },
         }, keySpeed);
     }
 
@@ -295,6 +315,7 @@ $(".help").click(function(){
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -304,6 +325,7 @@ $(window).blur(function(e) {
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -313,6 +335,7 @@ $(window).focus(function(e) {
     }
     video_container.pause();    
     paused = true;
+    $('#pause-helper').addClass('hidden')
     $('#pause').removeClass('hidden');
     $('#video-shade').removeClass('hidden');
 });
@@ -334,7 +357,7 @@ function animateBounded(){
     // Output for the video length bar
     $('#video-length #bar').css('width', (getCurrentTime()/getDuration())*100 + '%');    
     // If video passed 25% of viewing time, register it as seen
-    if(getCurrentTime()/getDuration() > 0.25 && seen_trigger == false) {
+    if(getCurrentTime()/getDuration() > 0.95 && seen_trigger == false) {
         seen_trigger = true;
         var seen;
         if (video_type == 'upload' || video_type == 'user_upload' || video_type == 'game') {
@@ -785,24 +808,36 @@ function animateBinary(){
 // 'binary': 1 positive -1 negative annotation
 // 'bounded': between -100 and 100, where 0 is the middle
 // 'unbounded' (default): between -inf and +inf, where 0 is the initial value
+var sentLastRecordedAnnotation = true;
 function recordAnnotation(currentTime, mode){
-    if ((currentTime > previousTime) && previousValue != annotatorValue) {
+    recordAnnotatorValue = annotatorValue;
+    if (mode == 'bounded') {
+        recordAnnotatorValue = clamp(annotatorValue, -100, 100);
+    }
+
+    if ((currentTime > previousTime) && previousValue != recordAnnotatorValue) {
         if(mode == 'binary'){
-            if (annotatorValue > previousValue) {
+            if (recordAnnotatorValue > previousValue) {
                 trace.push({x: currentTime, y: 40});
                 sendAnnotation((new Date).getTime(), currentTime, 1);
             } else {
                 trace.push({x: currentTime, y: 110});
                 sendAnnotation((new Date).getTime(), currentTime, -1);
             }
-        } else if(mode =='bounded') {
-            sendAnnotation((new Date).getTime(), currentTime, clamp(annotatorValue, -100, 100));
+        } else if(mode == 'bounded') {
+            if (!sentLastRecordedAnnotation) {
+                sendAnnotation((new Date).getTime(), previousTime, previousValue);
+            }
+            sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
         } else {
-            sendAnnotation((new Date).getTime(), currentTime, annotatorValue);
+            sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
         }
-        previousTime = currentTime;
-        previousValue = annotatorValue;
+        sentLastRecordedAnnotation = true;
+    } else if (currentTime > previousTime) {
+        sentLastRecordedAnnotation = false;
     }
+    previousTime = currentTime;
+    previousValue = recordAnnotatorValue;
 }
 
 // Posts a package to the server
@@ -897,6 +932,7 @@ function KeyboardController(keys, repeat) {
 
 function startPause() {
     var youtubePaused = false;
+    pressedPause = false;
     if (!end_trigger) {
         if (video_type == 'youtube' || video_type == 'user_youtube') {
             if (player.getPlayerState() == 2){
@@ -916,8 +952,6 @@ function startPause() {
                         video_container.muted = true;
                     }
                 }
-                // Log start of the annotation
-                sendAnnotation((new Date).getTime(), currentTime, 0);
 
                 if (annotation_type == "bounded") {
                     bound_line_width = 2;
@@ -930,6 +964,12 @@ function startPause() {
                     context.moveTo(0, lower_line_y);
                     context.lineTo(canvas.width, lower_line_y);
                     context.stroke();
+
+                    // Log start of the annotation
+                    sendAnnotation((new Date).getTime(), currentTime, -100);
+                } else {
+                    // Log start of the annotation
+                    sendAnnotation((new Date).getTime(), currentTime, 0);
                 }
             }
             if (video_type == 'youtube' || video_type == 'user_youtube') {
@@ -938,6 +978,7 @@ function startPause() {
             video_container.play(); 
 
             paused = false;
+            $('#pause-helper').removeClass('hidden')
             $('#pause').addClass('hidden');
             $('#video-shade').addClass('hidden');
             if (annotation_type == "binary") {
@@ -958,6 +999,7 @@ function startPause() {
                 video_container.pause();    
             }
             paused = true;
+            $('#pause-helper').addClass('hidden')
             $('#pause').removeClass('hidden');
             $('#video-shade').removeClass('hidden');
         }

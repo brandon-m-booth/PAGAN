@@ -247,7 +247,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <h3>Hello!</h3>
             <p>Thank you for your help in this experiment!</p>
             <p>By participating in this study you understand and consent to your labelling data to be stored and used in further experiments and/or made public as part of a larger dataset.</p>
-            <p>Don't worry, all the data is collected anonymously and cannot be traced back to you.</p>
+            <p>Don't worry, all the data are collected anonymously and cannot be traced back to you.</p>
             <br>
             <p>We use scripts and persistent cookies on this platform. Our applications run on JavaScript, while cookies help us collecting and organising data.</p>
             <p>Please keep scripts and cookies enabled for science!</p>
