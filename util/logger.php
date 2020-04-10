@@ -10,16 +10,18 @@
     $original_name = filter_input(INPUT_POST,'original_name',FILTER_SANITIZE_STRING);
     $annotation_type = filter_input(INPUT_POST,'annotation_type',FILTER_SANITIZE_STRING);
     $participant_id = $_COOKIE['user'];
+    $external_pid = $_COOKIE['external_pid'];
 
     // Prepare an insert statement
-    $sql = "INSERT INTO logs (project_id, entry_id, participant_id, session_id, original_name, time_stamp, videotime, annotation_value, annotation_type) 
-    VALUES (:project_id, :entry_id, :participant_id, :session_id, :original_name, :time_stamp, :videotime, :annotation_value, :annotation_type)";
+    $sql = "INSERT INTO logs (project_id, entry_id, participant_id, external_pid, session_id, original_name, time_stamp, videotime, annotation_value, annotation_type) 
+    VALUES (:project_id, :entry_id, :participant_id, :external_pid, :session_id, :original_name, :time_stamp, :videotime, :annotation_value, :annotation_type)";
      
     if($stmt = $pdo->prepare($sql)){
         // Bind variables to the prepared statement as parameters
         $stmt->bindParam(":project_id", $param_project_id, PDO::PARAM_STR);
         $stmt->bindParam(":entry_id", $param_entry_id, PDO::PARAM_STR);
         $stmt->bindParam(":participant_id", $param_participant_id, PDO::PARAM_STR);
+        $stmt->bindParam(":external_pid", $param_external_pid, PDO::PARAM_STR);
         $stmt->bindParam(":session_id", $param_session_id, PDO::PARAM_STR);
         $stmt->bindParam(":session_id", $param_session_id, PDO::PARAM_STR);
         $stmt->bindParam(":original_name", $param_original_name, PDO::PARAM_STR);
@@ -32,6 +34,7 @@
         $param_project_id = $project_id;
         $param_entry_id = $entry_id;
         $param_participant_id = $participant_id;
+        $param_external_pid = $external_pid;
         $param_session_id = $session_id;
         $param_original_name = $original_name;
         $param_time_stamp = $time_stamp;

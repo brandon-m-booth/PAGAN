@@ -1,10 +1,15 @@
 <?php
 # Generate User if User does not exists
 if(!isset($_COOKIE['user'])){
-	$id = getGUID();
+    $id = getGUID();
     setcookie('user', $id, time()+315400000,"/");
     $_COOKIE['user'] = $id;
 }
+
+# Always update the external ID (e.g., from Mturk)
+$external_pid = $_GET["externalAnnotatorID"];
+setcookie('external_pid', $external_pid, time()+315400000,"/");
+$_COOKIE['external_pid'] = $external_pid;
 
 $current_page = explode(".", $_SERVER['REQUEST_URI'])[0];
 

@@ -3,6 +3,7 @@ var
     video_container = $('video')[0],    //video container
     canvas = $('canvas')[0],            //canvas for the annotator app
     context = canvas.getContext('2d'),  //context of the drawing board
+    pressedPause = false,               //boolean tracking when the pause/unpause input is received
     paused = true,                      //boolean tracking if the video is on pause
     annotatorPosY = canvas.height/2,    //default annotator cursor position Y
     annotatorPosX = 20,                 //default annotator cursor position X
@@ -247,6 +248,9 @@ function endSession() {
 
 // Listens for keyboard controls
 function startControls() {
+    if (!firstStart) {
+        return;
+    }
     sessionStart = Math.floor((new Date).getTime()/1000);
 
     var keySpeed = 10;
@@ -269,7 +273,7 @@ function startControls() {
     // When Space is pressed start/pause the video
     // 1 sec delay on start/pause to stop flickering when space held down
     KeyboardController({
-        32: function() { startPause(); },
+        32: function() { if(!pressedPause) {pressedPause = true; startPause();} },
     }, 1000);
 
     // Keyboard controller for a smoother register of keydown
@@ -277,19 +281,19 @@ function startControls() {
         KeyboardController({
             // Key Up and W, Right and D
             39: function() { addValue(); },
-            68: function() { addValue(); },
+            //68: function() { addValue(); },
             // Key Down and S, Left and A
             37: function() { subtractValue(); },
-            65: function() { subtractValue(); },
+            //65: function() { subtractValue(); },
         }, keySpeed);
     } else {
         KeyboardController({
             // Key Up and W, Right and D
             38: function() { addValue(); },
-            87: function() { addValue(); },
+            //87: function() { addValue(); },
             // Key Down and S, Left and A
             40: function() { subtractValue(); },
-            83: function() { subtractValue(); },
+            //83: function() { subtractValue(); },
         }, keySpeed);
     }
 
@@ -822,10 +826,8 @@ function recordAnnotation(currentTime, mode){
             }
         } else if(mode == 'bounded') {
             if (!sentLastRecordedAnnotation) {
-                console.log("Previous: ", previousValue);
                 sendAnnotation((new Date).getTime(), previousTime, previousValue);
             }
-            console.log("Current: ", recordAnnotatorValue);
             sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
         } else {
             sendAnnotation((new Date).getTime(), currentTime, recordAnnotatorValue);
@@ -930,6 +932,7 @@ function KeyboardController(keys, repeat) {
 
 function startPause() {
     var youtubePaused = false;
+    pressedPause = false;
     if (!end_trigger) {
         if (video_type == 'youtube' || video_type == 'user_youtube') {
             if (player.getPlayerState() == 2){

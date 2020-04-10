@@ -92,7 +92,7 @@ if($_SERVER["REQUEST_METHOD"] == "GET"){
                                 </div>
                                 <div class="bottom-box">
                                     <div class="link-box">
-                                        <input class="link" value="'.$_SERVER['HTTP_HOST'].'/annotation.php?id='.$row['project_id'].'"/>
+                                        <input class="link" value="'.$_SERVER['HTTP_HOST'].dirname($_SERVER['PHP_SELF']).'/annotation.php?id='.$row['project_id'].'"/>
                                         <a class="button video" href="./annotation.php?id='.$row['project_id'].'&test_mode=True" target="_blank">test ';
                                         if ($row['source_type'] == 'user_youtube' || $row['source_type'] == 'user_upload') {
                                             echo 'upload';
